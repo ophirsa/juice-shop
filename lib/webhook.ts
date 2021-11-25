@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2021 Bjoern Kimminich.
+ * Copyright (c) 2014-2021 Bjoern Kimminich & the OWASP Juice Shop contributors.
  * SPDX-License-Identifier: MIT
  */
 
@@ -27,7 +27,7 @@ exports.notify = async (challenge, cheatScore = -1, webhook = process.env.SOLUTI
         hostName: os.hostname(),
         os: `${os.type()} (${os.release()})`,
         appName: config.get('application.name'),
-        config: process.env.NODE_ENV || 'default',
+        config: process.env.NODE_ENV ?? 'default',
         version: utils.version()
       }
     }

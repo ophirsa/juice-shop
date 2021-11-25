@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2021 Bjoern Kimminich.
+ * Copyright (c) 2014-2021 Bjoern Kimminich & the OWASP Juice Shop contributors.
  * SPDX-License-Identifier: MIT
  */
 
@@ -13,10 +13,10 @@ const customizeApplication = () => {
     customizeTitle()
   }
   if (config.get('application.logo')) {
-    customizeLogo()
+    void customizeLogo()
   }
   if (config.get('application.favicon')) {
-    customizeFavicon()
+    void customizeFavicon()
   }
   if (config.get('application.theme')) {
     customizeTheme()
@@ -25,14 +25,14 @@ const customizeApplication = () => {
     customizeCookieConsentBanner()
   }
   if (config.get('application.promotion')) {
-    customizePromotionVideo()
-    customizePromotionSubtitles()
+    void customizePromotionVideo()
+    void customizePromotionSubtitles()
   }
   if (config.get('hackingInstructor')) {
-    customizeHackingInstructorAvatar()
+    void customizeHackingInstructorAvatar()
   }
   if (config.get('application.chatBot')) {
-    customizeChatbotAvatar()
+    void customizeChatbotAvatar()
   }
 }
 
@@ -71,7 +71,7 @@ const customizePromotionSubtitles = async () => {
 
 const retrieveCustomFile = async (sourceProperty, destinationFolder) => {
   let file = config.get(sourceProperty)
-  if (utils.startsWith(file, 'http')) {
+  if (utils.isUrl(file)) {
     const filePath = file
     file = utils.extractFilename(file)
     await utils.downloadToFile(filePath, destinationFolder + '/' + file)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2021 Bjoern Kimminich.
+ * Copyright (c) 2014-2021 Bjoern Kimminich & the OWASP Juice Shop contributors.
  * SPDX-License-Identifier: MIT
  */
 
@@ -7,13 +7,12 @@ import config = require('config')
 const otplib = require('otplib')
 
 describe('/#/login', () => {
-  let email, password, rememberMeCheckbox, loginButton
+  let email, password, loginButton
 
   beforeEach(() => {
-    browser.get(protractor.basePath + '/#/login')
+    browser.get(`${protractor.basePath}/#/login`)
     email = element(by.id('email'))
     password = element(by.id('password'))
-    rememberMeCheckbox = element(by.id('rememberMe-input'))
     loginButton = element(by.id('loginButton'))
   })
 
@@ -25,7 +24,7 @@ describe('/#/login', () => {
     })
 
     it('should log in Admin with SQLI attack on email field using "admin@<juice-sh.op>\'--"', () => {
-      email.sendKeys('admin@' + config.get('application.domain') + '\'--')
+      email.sendKeys(`admin@${config.get('application.domain')}'--`)
       password.sendKeys('a')
       loginButton.click()
     })
@@ -35,7 +34,7 @@ describe('/#/login', () => {
 
   describe('challenge "loginJim"', () => {
     it('should log in Jim with SQLI attack on email field using "jim@<juice-sh.op>\'--"', () => {
-      email.sendKeys('jim@' + config.get('application.domain') + '\'--')
+      email.sendKeys(`jim@${config.get('application.domain')}'--`)
       password.sendKeys('a')
       loginButton.click()
     })
@@ -45,7 +44,7 @@ describe('/#/login', () => {
 
   describe('challenge "loginBender"', () => {
     it('should log in Bender with SQLI attack on email field using "bender@<juice-sh.op>\'--"', () => {
-      email.sendKeys('bender@' + config.get('application.domain') + '\'--')
+      email.sendKeys(`bender@${config.get('application.domain')}'--`)
       password.sendKeys('a')
       loginButton.click()
     })
@@ -55,7 +54,7 @@ describe('/#/login', () => {
 
   describe('challenge "adminCredentials"', () => {
     it('should be able to log in with original (weak) admin credentials', () => {
-      email.sendKeys('admin@' + config.get('application.domain'))
+      email.sendKeys(`admin@${config.get('application.domain')}`)
       password.sendKeys('admin123')
       loginButton.click()
     })
@@ -65,8 +64,8 @@ describe('/#/login', () => {
 
   describe('challenge "loginSupport"', () => {
     it('should be able to log in with original support-team credentials', () => {
-      email.sendKeys('support@' + config.get('application.domain'))
-      password.sendKeys('J6aVjTgOpRs$?5l+Zkq2AYnCE@RF§P')
+      email.sendKeys(`support@${config.get('application.domain')}`)
+      password.sendKeys('J6aVjTgOpRs@?5l!Zkq2AYnCE@RF$P')
       loginButton.click()
     })
 
@@ -75,7 +74,7 @@ describe('/#/login', () => {
 
   describe('challenge "loginRapper"', () => {
     it('should be able to log in with original MC SafeSearch credentials', () => {
-      email.sendKeys('mc.safesearch@' + config.get('application.domain'))
+      email.sendKeys(`mc.safesearch@${config.get('application.domain')}`)
       password.sendKeys('Mr. N00dles')
       loginButton.click()
     })
@@ -85,7 +84,7 @@ describe('/#/login', () => {
 
   describe('challenge "loginAmy"', () => {
     it('should be able to log in with original Amy credentials', () => {
-      email.sendKeys('amy@' + config.get('application.domain'))
+      email.sendKeys(`amy@${config.get('application.domain')}`)
       password.sendKeys('K1f.....................')
       loginButton.click()
     })
@@ -95,7 +94,7 @@ describe('/#/login', () => {
 
   describe('challenge "dlpPasswordSpraying"', () => {
     it('should be able to log in with original Jannik credentials', () => {
-      email.sendKeys('J12934@' + config.get('application.domain'))
+      email.sendKeys(`J12934@${config.get('application.domain')}`)
       password.sendKeys('0Y8rMnww$*9VFYE§59-!Fg1L6t&6lB')
       loginButton.click()
     })
@@ -114,7 +113,7 @@ describe('/#/login', () => {
     })
 
     it('should be able to log into a exsisting 2fa protected account given the right token', () => {
-      email.sendKeys('wurstbrot@' + config.get('application.domain') + '\'--')
+      email.sendKeys(`wurstbrot@${config.get('application.domain')}'--`)
       password.sendKeys('Never mind...')
       loginButton.click()
 
@@ -139,36 +138,6 @@ describe('/#/login', () => {
     protractor.expect.challengeSolved({ challenge: 'Login Bjoern' })
   })
 
-  describe('challenge "loginCiso"', () => {
-    it('should be able to log in as ciso@juice-sh.op by using "Remember me" in combination with (fake) OAuth login with another user', () => {
-      email.sendKeys('ciso@' + config.get('application.domain'))
-      password.sendKeys('wrong')
-      browser.executeScript('document.getElementById("rememberMe-input").removeAttribute("class");')
-      rememberMeCheckbox.click()
-      loginButton.click()
-
-      browser.executeScript(baseUrl => {
-        const xhttp = new XMLHttpRequest()
-        xhttp.onreadystatechange = function () {
-          if (this.status === 200) {
-            console.log('Success')
-          }
-        }
-        xhttp.open('POST', baseUrl + '/rest/user/login', true)
-        xhttp.setRequestHeader('Content-type', 'application/json')
-        xhttp.setRequestHeader('Authorization', `Bearer ${localStorage.getItem('token')}`)
-        xhttp.setRequestHeader('X-User-Email', localStorage.getItem('email'))
-        xhttp.send(JSON.stringify({ email: 'admin@juice-sh.op', password: 'admin123', oauth: true }))
-      }, browser.baseUrl)
-
-      // Deselect to clear email field for subsequent tests
-      rememberMeCheckbox.click()
-      loginButton.click()
-    })
-
-    protractor.expect.challengeSolved({ challenge: 'Login CISO' })
-  })
-
   describe('challenge "ghostLogin"', () => {
     it('should be able to log in as chris.pike@juice-sh.op by using `\' or deletedAt IS NOT NULL --`', () => {
       email.sendKeys('\' or deletedAt IS NOT NULL--')
@@ -177,7 +146,7 @@ describe('/#/login', () => {
     })
 
     it('should be able to log in as chris.pike@juice-sh.op by using `chris.pike@juice-sh.op\' --`', () => {
-      email.sendKeys('chris.pike@' + config.get('application.domain') + '\'--')
+      email.sendKeys(`chris.pike@${config.get('application.domain')}'--`)
       password.sendKeys('a')
       loginButton.click()
     })

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2021 Bjoern Kimminich.
+ * Copyright (c) 2014-2021 Bjoern Kimminich & the OWASP Juice Shop contributors.
  * SPDX-License-Identifier: MIT
  */
 
@@ -11,9 +11,9 @@ describe('/#/track-order', () => {
       it('Order Id should be susceptible to reflected XSS attacks', () => {
         const EC = protractor.ExpectedConditions
 
-        browser.get(protractor.basePath + '/#/track-result')
+        browser.get(`${protractor.basePath}/#/track-result`)
         browser.waitForAngularEnabled(false)
-        browser.get(protractor.basePath + '/#/track-result?id=<iframe src="javascript:alert(`xss`)">')
+        browser.get(`${protractor.basePath}/#/track-result?id=<iframe src="javascript:alert(\`xss\`)">`)
         browser.refresh()
 
         browser.wait(EC.alertIsPresent(), 5000, "'xss' alert is not present on /#/track-result ")

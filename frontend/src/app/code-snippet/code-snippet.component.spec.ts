@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2021 Bjoern Kimminich.
+ * Copyright (c) 2014-2021 Bjoern Kimminich & the OWASP Juice Shop contributors.
  * SPDX-License-Identifier: MIT
  */
 
@@ -11,14 +11,22 @@ import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing'
 
 import { CodeSnippetComponent } from './code-snippet.component'
 import { CodeSnippetService } from '../Services/code-snippet.service'
+import { CookieModule, CookieService } from 'ngx-cookie'
+import { ConfigurationService } from '../Services/configuration.service'
+import { of } from 'rxjs'
 
-describe('UserDetailsComponent', () => {
+describe('CodeSnippetComponent', () => {
   let component: CodeSnippetComponent
   let fixture: ComponentFixture<CodeSnippetComponent>
+  let configurationService: any
 
   beforeEach(waitForAsync(() => {
+    configurationService = jasmine.createSpyObj('ConfigurationService', ['getApplicationConfiguration'])
+    configurationService.getApplicationConfiguration.and.returnValue(of({ application: {}, challenges: {} }))
+
     TestBed.configureTestingModule({
       imports: [
+        CookieModule.forRoot(),
         TranslateModule.forRoot(),
         HttpClientTestingModule,
         MatDividerModule,
@@ -27,11 +35,14 @@ describe('UserDetailsComponent', () => {
       declarations: [CodeSnippetComponent],
       providers: [
         CodeSnippetService,
+        CookieService,
         { provide: MatDialogRef, useValue: {} },
-        { provide: MAT_DIALOG_DATA, useValue: { dialogData: {} } }
+        { provide: MAT_DIALOG_DATA, useValue: { dialogData: {} } },
+        { provide: ConfigurationService, useValue: configurationService }
       ]
     })
       .compileComponents()
+    TestBed.inject(CookieService)
   }))
 
   beforeEach(() => {

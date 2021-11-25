@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2021 Bjoern Kimminich.
+ * Copyright (c) 2014-2021 Bjoern Kimminich & the OWASP Juice Shop contributors.
  * SPDX-License-Identifier: MIT
  */
 
@@ -22,7 +22,7 @@ async function login ({ email, password, totpSecret }) {
       email,
       password
     }).catch((res) => {
-      if (res.json && res.json.type && res.json.status === 'totp_token_required') {
+      if (res.json?.type && res.json.status === 'totp_token_required') {
         return res
       }
       throw new Error(`Failed to login '${email}'`)

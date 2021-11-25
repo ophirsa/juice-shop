@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2021 Bjoern Kimminich.
+ * Copyright (c) 2014-2021 Bjoern Kimminich & the OWASP Juice Shop contributors.
  * SPDX-License-Identifier: MIT
  */
 
@@ -7,10 +7,10 @@ import utils = require('../lib/utils')
 
 module.exports = function repeatNotification () {
   return ({ query }, res) => {
-    const challengeName = decodeURIComponent(query.challenge)
-    const challenge = utils.findChallenge(challengeName)
+    const challengeName: string = decodeURIComponent(query.challenge)
+    const challenge = utils.findChallengeByName(challengeName)
 
-    if (challenge && challenge.solved) {
+    if (challenge?.solved) {
       utils.sendNotification(challenge, true)
     }
 

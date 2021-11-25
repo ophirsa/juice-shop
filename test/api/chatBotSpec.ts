@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2021 Bjoern Kimminich.
+ * Copyright (c) 2014-2021 Bjoern Kimminich & the OWASP Juice Shop contributors.
  * SPDX-License-Identifier: MIT
  */
 
@@ -19,7 +19,7 @@ async function login ({ email, password, totpSecret }) {
       email,
       password
     }).catch((res) => {
-      if (res.json && res.json.type && res.json.status === 'totp_token_required') {
+      if (res.json?.type && res.json.status === 'totp_token_required') {
         return res
       }
       throw new Error(`Failed to login '${email}'`)
@@ -236,7 +236,7 @@ describe('/chatbot', () => {
       })
       const testCommand = functionTest[0].utterances[0]
       const testResponse = '3be2e438b7f3d04c89d7749f727bb3bd'
-      return frisby.setup({
+      return await frisby.setup({
         request: {
           headers: {
             Authorization: `Bearer ${token}`,

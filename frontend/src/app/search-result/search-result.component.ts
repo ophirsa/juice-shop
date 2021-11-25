@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2021 Bjoern Kimminich.
+ * Copyright (c) 2014-2021 Bjoern Kimminich & the OWASP Juice Shop contributors.
  * SPDX-License-Identifier: MIT
  */
 
@@ -67,7 +67,7 @@ export class SearchResultComponent implements OnDestroy, AfterViewInit {
     forkJoin([quantities, products]).subscribe(([quantities, products]) => {
       const dataTable: TableEntry[] = []
       this.tableData = products
-      this.trustProductDescription(products)
+      this.trustProductDescription(products) // vuln-code-snippet neutral-line restfulXssChallenge
       for (const product of products) {
         dataTable.push({
           name: product.name,
@@ -99,10 +99,10 @@ export class SearchResultComponent implements OnDestroy, AfterViewInit {
       this.routerSubscription = this.router.events.subscribe(() => {
         this.filterTable()
       })
-      const challenge: string = this.route.snapshot.queryParams.challenge
+      const challenge: string = this.route.snapshot.queryParams.challenge // vuln-code-snippet hide-start
       if (challenge && this.route.snapshot.url.join('').match(/hacking-instructor/)) {
         this.startHackingInstructor(decodeURIComponent(challenge))
-      }
+      } // vuln-code-snippet hide-end
       if (window.innerWidth < 2600) {
         this.breakpoint = 4
         if (window.innerWidth < 1740) {
@@ -121,11 +121,11 @@ export class SearchResultComponent implements OnDestroy, AfterViewInit {
     }, (err) => console.log(err))
   }
 
-  trustProductDescription (tableData: any[]) {
-    for (let i = 0; i < tableData.length; i++) {
+  trustProductDescription (tableData: any[]) { // vuln-code-snippet neutral-line restfulXssChallenge
+    for (let i = 0; i < tableData.length; i++) { // vuln-code-snippet neutral-line restfulXssChallenge
       tableData[i].description = this.sanitizer.bypassSecurityTrustHtml(tableData[i].description) // vuln-code-snippet vuln-line restfulXssChallenge
-    }
-  }
+    } // vuln-code-snippet neutral-line restfulXssChallenge
+  } // vuln-code-snippet neutral-line restfulXssChallenge
   // vuln-code-snippet end restfulXssChallenge
 
   ngOnDestroy () {

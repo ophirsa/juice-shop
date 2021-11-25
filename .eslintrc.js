@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2021 Bjoern Kimminich.
+ * Copyright (c) 2014-2021 Bjoern Kimminich & the OWASP Juice Shop contributors.
  * SPDX-License-Identifier: MIT
  */
 
@@ -24,33 +24,22 @@ module.exports = {
     'app/private/**',
     'vagrant/**',
     'frontend/**',
+    'data/static/codefixes/**',
     'dist/**'
   ],
   overrides: [
     {
-      /**
-       * Purpose of this Section:
-       *  Temporarily suppress TypeScript-related linting errors during migration to typescript.
-       * When to remove:
-       *  After all @typescript-eslint warnings are fixed/resolved.
-       */
       files: ['**/*.ts'],
       parser: '@typescript-eslint/parser',
       rules: {
-        '@typescript-eslint/explicit-function-return-type': 'warn',
-        '@typescript-eslint/no-dynamic-delete': 'warn',
-        '@typescript-eslint/no-floating-promises': 'warn',
-        '@typescript-eslint/no-misused-promises': 'warn',
-        '@typescript-eslint/no-this-alias': 'warn',
-        '@typescript-eslint/no-var-requires': 'warn',
-        '@typescript-eslint/prefer-includes': 'warn',
-        '@typescript-eslint/prefer-nullish-coalescing': 'warn',
-        '@typescript-eslint/prefer-optional-chain': 'warn',
-        '@typescript-eslint/promise-function-async': 'warn',
-        '@typescript-eslint/restrict-template-expressions': 'warn',
-        '@typescript-eslint/restrict-plus-operands': 'warn',
-        '@typescript-eslint/return-await': 'warn',
-        '@typescript-eslint/strict-boolean-expressions': 'warn'
+        'no-void': 'off', // conflicting with recommendation from @typescript-eslint/no-floating-promises
+        // FIXME warnings below this line need to be checked and fixed. Line end comments below are number of findings per rule on 24.03.2021
+        '@typescript-eslint/no-misused-promises': 'off', // 97
+        '@typescript-eslint/explicit-function-return-type': 'off', // 132
+        '@typescript-eslint/restrict-plus-operands': 'off', // 292
+        '@typescript-eslint/strict-boolean-expressions': 'off', // 388
+        '@typescript-eslint/restrict-template-expressions': 'off', // 466
+        '@typescript-eslint/no-var-requires': 'off' // 502
       }
     }
   ]

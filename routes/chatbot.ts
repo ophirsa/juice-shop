@@ -1,15 +1,15 @@
 /*
- * Copyright (c) 2014-2021 Bjoern Kimminich.
+ * Copyright (c) 2014-2021 Bjoern Kimminich & the OWASP Juice Shop contributors.
  * SPDX-License-Identifier: MIT
  */
 
+import fs = require('fs')
 const { Bot } = require('juicy-chat-bot')
 const security = require('../lib/insecurity')
 const jwt = require('jsonwebtoken')
 const utils = require('../lib/utils')
 const botUtils = require('../lib/botUtils')
 const config = require('config')
-import fs = require('fs')
 const download = require('download')
 const models = require('../models/index')
 const challenges = require('../data/datacache').challenges
@@ -18,7 +18,7 @@ let trainingFile = config.get('application.chatBot.trainingData')
 let testCommand, bot
 
 async function initialize () {
-  if (utils.startsWith(trainingFile, 'http')) {
+  if (utils.isUrl(trainingFile)) {
     const file = utils.extractFilename(trainingFile)
     const data = await download(trainingFile)
     fs.writeFileSync('data/chatbot/' + file, data)
@@ -38,7 +38,7 @@ async function initialize () {
   return bot.train()
 }
 
-initialize()
+void initialize()
 
 async function processQuery (user, req, res) {
   const username = user.username

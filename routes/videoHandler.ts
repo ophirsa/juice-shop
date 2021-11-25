@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2021 Bjoern Kimminich.
+ * Copyright (c) 2014-2021 Bjoern Kimminich & the OWASP Juice Shop contributors.
  * SPDX-License-Identifier: MIT
  */
 
@@ -9,6 +9,8 @@ const config = require('config')
 const challenges = require('../data/datacache').challenges
 const utils = require('../lib/utils')
 const themes = require('../views/themes/themes').themes
+const Entities = require('html-entities').AllHtmlEntities
+const entities = new Entities()
 
 exports.getVideo = () => {
   return (req, res) => {
@@ -52,7 +54,7 @@ exports.promotionVideo = () => {
       utils.solveIf(challenges.videoXssChallenge, () => { return utils.contains(subs, '</script><script>alert(`xss`)</script>') })
 
       const theme = themes[config.get('application.theme')]
-      template = template.replace(/_title_/g, config.get('application.name'))
+      template = template.replace(/_title_/g, entities.encode(config.get('application.name')))
       template = template.replace(/_favicon_/g, favicon())
       template = template.replace(/_bgColor_/g, theme.bgColor)
       template = template.replace(/_textColor_/g, theme.textColor)
@@ -72,7 +74,7 @@ exports.promotionVideo = () => {
 
 function getSubsFromFile () {
   let subtitles = 'owasp_promo.vtt'
-  if (config && config.application && config.application.promotion && config.application.promotion.subtitles !== null) {
+  if (config?.application?.promotion?.subtitles !== null) {
     subtitles = utils.extractFilename(config.application.promotion.subtitles)
   }
   const data = fs.readFileSync('frontend/dist/frontend/assets/public/videos/' + subtitles, 'utf8')
@@ -80,7 +82,7 @@ function getSubsFromFile () {
 }
 
 function videoPath () {
-  if (config && config.application && config.application.promotion && config.application.promotion.video !== null) {
+  if (config?.application?.promotion?.video !== null) {
     const video = utils.extractFilename(config.application.promotion.video)
     return 'frontend/src/assets/public/videos/' + video
   }

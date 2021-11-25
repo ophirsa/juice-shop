@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2021 Bjoern Kimminich.
+ * Copyright (c) 2014-2021 Bjoern Kimminich & the OWASP Juice Shop contributors.
  * SPDX-License-Identifier: MIT
  */
 
@@ -19,15 +19,15 @@ describe('webhook', () => {
 
   describe('notify', () => {
     it('fails when no webhook URL is provided via environment variable', () => {
-      expect(webhook.notify(challenge)).to.eventually.throw('options.uri is a required argument')
+      void expect(webhook.notify(challenge)).to.eventually.throw('options.uri is a required argument')
     })
 
     it('fails when supplied webhook is not a valid URL', () => {
-      expect(webhook.notify(challenge, 0, 'localhorst')).to.eventually.throw('Invalid URI "localhorst"')
+      void expect(webhook.notify(challenge, 0, 'localhorst')).to.eventually.throw('Invalid URI "localhorst"')
     })
 
     it('submits POST with payload to existing URL', () => {
-      expect(webhook.notify(challenge, 0, 'https://enlm7zwniuyah.x.pipedream.net/')).to.eventually.not.throw()
+      void expect(webhook.notify(challenge, 0, 'https://enlm7zwniuyah.x.pipedream.net/')).to.eventually.not.throw()
     })
   })
 })

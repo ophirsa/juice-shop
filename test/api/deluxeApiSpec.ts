@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2021 Bjoern Kimminich.
+ * Copyright (c) 2014-2021 Bjoern Kimminich & the OWASP Juice Shop contributors.
  * SPDX-License-Identifier: MIT
  */
 
@@ -12,11 +12,11 @@ const API_URL = 'http://localhost:3000/api'
 
 async function login ({ email, password, totpSecret }) {
   const loginRes = await frisby
-    .post(REST_URL + '/user/login', {
+    .post(`${REST_URL}/user/login`, {
       email,
       password
     }).catch((res) => {
-      if (res.json && res.json.type && res.json.status === 'totp_token_required') {
+      if (res.json?.type && res.json.status === 'totp_token_required') {
         return res
       }
       throw new Error(`Failed to login '${email}'`)
@@ -100,11 +100,11 @@ describe('/rest/deluxe-membership', () => {
 
   it('POST upgrade deluxe membership status for customers', async () => {
     const { token } = await login({
-      email: 'bender@' + config.get('application.domain'),
+      email: `bender@${config.get('application.domain')}`,
       password: 'OhG0dPlease1nsertLiquor!'
     })
 
-    frisby.get(API_URL + '/Cards', {
+    return await frisby.get(API_URL + '/Cards', {
       headers: { Authorization: 'Bearer ' + token, 'content-type': 'application/json' }
     })
       .expect('status', 200)
@@ -123,11 +123,11 @@ describe('/rest/deluxe-membership', () => {
 
   it('POST deluxe membership status with wrong card id throws error', async () => {
     const { token } = await login({
-      email: 'jim@' + config.get('application.domain'),
+      email: `jim@${config.get('application.domain')}`,
       password: 'ncc-1701'
     })
 
-    frisby.post(REST_URL + '/deluxe-membership', {
+    return await frisby.post(REST_URL + '/deluxe-membership', {
       headers: { Authorization: 'Bearer ' + token, 'content-type': 'application/json' },
       body: {
         paymentMode: 'card',

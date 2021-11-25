@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2021 Bjoern Kimminich.
+ * Copyright (c) 2014-2021 Bjoern Kimminich & the OWASP Juice Shop contributors.
  * SPDX-License-Identifier: MIT
  */
 
@@ -16,8 +16,8 @@ module.exports = function updateUserProfile () {
     if (loggedInUser) {
       models.User.findByPk(loggedInUser.data.id).then(user => {
         utils.solveIf(challenges.csrfChallenge, () => {
-          return ((req.headers.origin && req.headers.origin.includes('://htmledit.squarefree.com')) ||
-            (req.headers.referer && req.headers.referer.includes('://htmledit.squarefree.com'))) &&
+          return ((req.headers.origin?.includes('://htmledit.squarefree.com')) ||
+            (req.headers.referer?.includes('://htmledit.squarefree.com'))) &&
             req.body.username !== user.username
         })
         user.update({ username: req.body.username }).then(newuser => {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2021 Bjoern Kimminich.
+ * Copyright (c) 2014-2021 Bjoern Kimminich & the OWASP Juice Shop contributors.
  * SPDX-License-Identifier: MIT
  */
 
@@ -78,7 +78,8 @@ async function createChallenges () {
           hintUrl: showHints ? hintUrl : null,
           mitigationUrl: showMitigations ? mitigationUrl : null,
           disabledEnv: config.get('challenges.safetyOverride') ? null : effectiveDisabledEnv,
-          tutorialOrder: tutorial ? tutorial.order : null
+          tutorialOrder: tutorial ? tutorial.order : null,
+          codingChallengeStatus: 0
         })
       } catch (err) {
         logger.error(`Could not insert Challenge ${name}: ${err.message}`)
@@ -202,7 +203,7 @@ async function createRandomFakeUsers () {
     return text
   }
 
-  return Promise.all(new Array(config.get('application.numberOfRandomFakeUsers')).fill(0).map(
+  return await Promise.all(new Array(config.get('application.numberOfRandomFakeUsers')).fill(0).map(
     () => models.User.create({
       email: getGeneratedRandomFakeUserEmail(),
       password: makeRandomString(5)
@@ -235,7 +236,7 @@ async function createMemories () {
     }),
     ...utils.thaw(config.get('memories')).map((memory) => {
       let tmpImageFileName = memory.image
-      if (utils.startsWith(memory.image, 'http')) {
+      if (utils.isUrl(memory.image)) {
         const imageUrl = memory.image
         tmpImageFileName = utils.extractFilename(memory.image)
         utils.downloadToFile(imageUrl, 'frontend/dist/frontend/assets/public/images/uploads/' + tmpImageFileName)
@@ -258,7 +259,7 @@ async function createMemories () {
     })
   ]
 
-  return Promise.all(memories)
+  return await Promise.all(memories)
 }
 
 async function createProducts () {
@@ -269,7 +270,7 @@ async function createProducts () {
 
     // set default image values
     product.image = product.image || 'undefined.png'
-    if (utils.startsWith(product.image, 'http')) {
+    if (utils.isUrl(product.image)) {
       const imageUrl = product.image
       product.image = utils.extractFilename(product.image)
       utils.downloadToFile(imageUrl, 'frontend/dist/frontend/assets/public/images/products/' + product.image)
@@ -298,14 +299,14 @@ async function createProducts () {
   pastebinLeakChallengeProduct.deletedAt = '2019-02-1 00:00:00.000 +00:00'
 
   let blueprint = blueprintRetrievalChallengeProduct.fileForRetrieveBlueprintChallenge
-  if (utils.startsWith(blueprint, 'http')) {
+  if (utils.isUrl(blueprint)) {
     const blueprintUrl = blueprint
     blueprint = utils.extractFilename(blueprint)
     utils.downloadToFile(blueprintUrl, 'frontend/dist/frontend/assets/public/images/products/' + blueprint)
   }
   datacache.retrieveBlueprintChallengeFile = blueprint
 
-  return Promise.all(
+  return await Promise.all(
     products.map(
       ({ reviews = [], useForChristmasSpecialChallenge = false, urlForProductTamperingChallenge = false, fileForRetrieveBlueprintChallenge = false, ...product }) =>
         models.Product.create(product).catch(
@@ -571,7 +572,6 @@ function createSecurityAnswer (UserId, SecurityQuestionId, answer) {
 }
 
 async function createOrders () {
-  const email = 'admin@' + config.get('application.domain')
   const products = config.get('products')
   const basket1Products = [
     {
@@ -622,10 +622,11 @@ async function createOrders () {
     }
   ]
 
+  const adminEmail = 'admin@' + config.get('application.domain')
   const orders = [
     {
-      orderId: security.hash(email).slice(0, 4) + '-' + utils.randomHexString(16),
-      email: (email ? email.replace(/[aeiou]/gi, '*') : undefined),
+      orderId: security.hash(adminEmail).slice(0, 4) + '-' + utils.randomHexString(16),
+      email: (adminEmail.replace(/[aeiou]/gi, '*')),
       totalPrice: basket1Products[0].total + basket1Products[1].total,
       bonus: basket1Products[0].bonus + basket1Products[1].bonus,
       products: basket1Products,
@@ -633,8 +634,8 @@ async function createOrders () {
       delivered: false
     },
     {
-      orderId: security.hash(email).slice(0, 4) + '-' + utils.randomHexString(16),
-      email: (email ? email.replace(/[aeiou]/gi, '*') : undefined),
+      orderId: security.hash(adminEmail).slice(0, 4) + '-' + utils.randomHexString(16),
+      email: (adminEmail.replace(/[aeiou]/gi, '*')),
       totalPrice: basket2Products[0].total,
       bonus: basket2Products[0].bonus,
       products: basket2Products,
@@ -643,7 +644,7 @@ async function createOrders () {
     },
     {
       orderId: security.hash('demo').slice(0, 4) + '-' + utils.randomHexString(16),
-      email: 'demo'.replace(/[aeiou]/gi, '*'),
+      email: 'd*m*',
       totalPrice: basket3Products[0].total + basket3Products[1].total,
       bonus: basket3Products[0].bonus + basket3Products[1].bonus,
       products: basket3Products,

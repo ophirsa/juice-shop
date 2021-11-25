@@ -8,8 +8,8 @@ application:
     showOnFirstStart: false
 challenges:
   showHints: false
-  showCodeSnippets: solved
   safetyOverride: true
+  showFeedbackButtons: false
 hackingInstructor:
   isEnabled: false
 ctf:

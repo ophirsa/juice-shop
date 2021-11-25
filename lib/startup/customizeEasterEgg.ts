@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2021 Bjoern Kimminich.
+ * Copyright (c) 2014-2021 Bjoern Kimminich & the OWASP Juice Shop contributors.
  * SPDX-License-Identifier: MIT
  */
 
@@ -10,7 +10,7 @@ const utils = require('../utils')
 const customizeEasterEgg = () => {
   if (config.has('application.easterEggPlanet.overlayMap')) {
     let overlay = config.get('application.easterEggPlanet.overlayMap')
-    if (utils.startsWith(overlay, 'http')) {
+    if (utils.isUrl(overlay)) {
       const overlayPath = overlay
       overlay = utils.extractFilename(overlay)
       utils.downloadToFile(overlayPath, 'frontend/dist/frontend/assets/private/' + overlay)

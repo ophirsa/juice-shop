@@ -1,11 +1,13 @@
 /*
- * Copyright (c) 2014-2021 Bjoern Kimminich.
+ * Copyright (c) 2014-2021 Bjoern Kimminich & the OWASP Juice Shop contributors.
  * SPDX-License-Identifier: MIT
  */
 
 /* jslint node: true */
 import packageJson from '../package.json'
+import { Op } from 'sequelize'
 import fs = require('fs')
+
 const colors = require('colors/safe')
 const notifications = require('../data/datacache').notifications
 const challenges = require('../data/datacache').challenges
@@ -23,6 +25,8 @@ const isWindows = require('is-windows')
 const logger = require('./logger')
 const webhook = require('./webhook')
 const antiCheat = require('./antiCheat')
+const accuracy = require('./accuracy')
+const models = require('../models')
 
 const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
 
@@ -46,7 +50,7 @@ exports.queryResultToJson = (data, status) => {
     } else if (data.length > 0) {
       wrappedData = []
       for (let i = 0; i < data.length; i++) {
-        wrappedData.push(data[i] && data[i].dataValues ? data[i].dataValues : data[i])
+        wrappedData.push(data[i]?.dataValues ? data[i].dataValues : data[i])
       }
     } else {
       wrappedData = data
@@ -56,6 +60,10 @@ exports.queryResultToJson = (data, status) => {
     status: status || 'success',
     data: wrappedData
   }
+}
+
+exports.isUrl = (url) => {
+  return !!this.startsWith(url, 'http')
 }
 
 exports.startsWith = (str, prefix) => str ? str.indexOf(prefix) === 0 : false
@@ -107,15 +115,10 @@ exports.solveIf = function (challenge, criteria, isRestore) {
 }
 
 exports.solve = function (challenge, isRestore) {
-  const self = this
   challenge.solved = true
-  challenge.save().then(solvedChallenge => {
-    solvedChallenge.description = entities.decode(sanitizeHtml(solvedChallenge.description, {
-      allowedTags: [],
-      allowedAttributes: []
-    }))
+  challenge.save().then((solvedChallenge) => {
     logger.info(`${isRestore ? colors.grey('Restored') : colors.green('Solved')} ${solvedChallenge.difficulty}-star ${colors.cyan(solvedChallenge.key)} (${solvedChallenge.name})`)
-    self.sendNotification(solvedChallenge, isRestore)
+    this.sendNotification(solvedChallenge, isRestore)
     if (!isRestore) {
       const cheatScore = antiCheat.calculateCheatScore(challenge)
       if (process.env.SOLUTIONS_WEBHOOK) {
@@ -133,7 +136,7 @@ exports.sendNotification = function (challenge, isRestore) {
     const notification = {
       key: challenge.key,
       name: challenge.name,
-      challenge: challenge.name + ' (' + challenge.description + ')',
+      challenge: challenge.name + ' (' + entities.decode(sanitizeHtml(challenge.description, { allowedTags: [], allowedAttributes: [] })) + ')',
       flag: flag,
       hidden: !config.get('challenges.showSolvedNotifications'),
       isRestore: isRestore
@@ -149,15 +152,26 @@ exports.sendNotification = function (challenge, isRestore) {
 
 exports.notSolved = challenge => challenge && !challenge.solved
 
-exports.findChallenge = challengeName => {
-  for (const name in challenges) {
-    if (Object.prototype.hasOwnProperty.call(challenges, name)) {
-      if (challenges[name].name === challengeName) {
-        return challenges[name]
+exports.findChallengeByName = (challengeName: string) => {
+  for (const c in challenges) {
+    if (Object.prototype.hasOwnProperty.call(challenges, c)) {
+      if (challenges[c].name === challengeName) {
+        return challenges[c]
       }
     }
   }
   logger.warn('Missing challenge with name: ' + challengeName)
+}
+
+exports.findChallengeById = (challengeId: number) => {
+  for (const c in challenges) {
+    if (Object.prototype.hasOwnProperty.call(challenges, c)) {
+      if (challenges[c].id === challengeId) {
+        return challenges[c]
+      }
+    }
+  }
+  logger.warn('Missing challenge with id: ' + challengeId)
 }
 
 exports.toMMMYY = date => {
@@ -194,7 +208,7 @@ exports.downloadToFile = async (url, dest) => {
 }
 
 exports.jwtFrom = ({ headers }) => {
-  if (headers && headers.authorization) {
+  if (headers?.authorization) {
     const parts = headers.authorization.split(' ')
     if (parts.length === 2) {
       const scheme = parts[0]
@@ -256,4 +270,26 @@ exports.toSimpleIpAddress = (ipv6) => {
 
 exports.thaw = (frozenObject) => {
   return JSON.parse(JSON.stringify(frozenObject))
+}
+
+exports.solveFindIt = async function (key: string, isRestore: boolean) {
+  const solvedChallenge = challenges[key]
+  await models.Challenge.update({ codingChallengeStatus: 1 }, { where: { key, codingChallengeStatus: { [Op.lt]: 2 } } })
+  logger.info(`${isRestore ? colors.grey('Restored') : colors.green('Solved')} 'Find It' phase of coding challenge ${colors.cyan(solvedChallenge.key)} (${solvedChallenge.name})`)
+  if (!isRestore) {
+    accuracy.storeFindItVerdict(solvedChallenge.key, true)
+    accuracy.calculateFindItAccuracy(solvedChallenge.key)
+    antiCheat.calculateFindItCheatScore(solvedChallenge)
+  }
+}
+
+exports.solveFixIt = async function (key: string, isRestore: boolean) {
+  const solvedChallenge = challenges[key]
+  await models.Challenge.update({ codingChallengeStatus: 2 }, { where: { key } })
+  logger.info(`${isRestore ? colors.grey('Restored') : colors.green('Solved')} 'Fix It' phase of coding challenge ${colors.cyan(solvedChallenge.key)} (${solvedChallenge.name})`)
+  if (!isRestore) {
+    accuracy.storeFixItVerdict(solvedChallenge.key, true)
+    accuracy.calculateFixItAccuracy(solvedChallenge.key)
+    antiCheat.calculateFixItCheatScore(solvedChallenge)
+  }
 }
